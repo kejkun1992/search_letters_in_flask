@@ -2,13 +2,33 @@
 from flask import Flask, render_template, request, escape
 from vsearch import search4letters
 
+import mysql.connector
+
 app = Flask(__name__)
 
 
 def log_request(req: 'flask_request', res: str) -> None:
    """Loguje szczegóły żądania sieciowego oraz wyniki."""
-   with open('vsearch.log', 'a') as log:
-      print(req.form, req.remote_addr, req.user_agent, res, file=log, sep='|')
+   dbconfig = { 'host': '127.0.0.1',
+                'user': 'vsearch',
+                'password': 'vsearchpasswd',
+                'database': 'vsearchlogDB', }
+
+   conn = mysql.connector.connect(**dbconfig)
+   cursor = conn.cursor()
+
+   _SQL = """insert into log
+             (phrase, letters, ip, browser_string, results)
+             values
+             (%s, %s, %s, %s, %s)"""
+   cursor.execute(_SQL, (req.form['phrase'],
+                         req.form['letters'],
+                         req.remote_addr,
+                         req.user_agent.browser,
+                         res, ))
+   conn.commit()
+   cursor.close()
+   conn.close()
 
 
 @app.route('/search4', methods=['POST'])
@@ -34,10 +54,13 @@ def entry_page() -> 'html':
                           the_title='Witamy na stronie internetowej search4letters!')
 
 
+"""Kod zakomentowany, ponieważ funkcja nie obsługuje jeszcze odczytu z bazy
 @app.route('/viewlog')
 def view_the_log() -> 'html':
+"""
    """Wyświetla zawartość pliku logu w tabeli HTML."""
-   contents = []
+"""
+contents = []
    with open('vsearch.log') as log:
       for line in log:
          contents.append([])
@@ -48,6 +71,7 @@ def view_the_log() -> 'html':
                           the_title='Widok logu',
                           the_row_titles=titles,
                           the_data=contents,)
+"""
 
 
 if __name__ == '__main__':
