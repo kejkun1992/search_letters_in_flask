@@ -13,7 +13,7 @@ app.config['dbconfig'] = {'host': '127.0.0.1',
 
 
 def log_request(req: 'flask_request', res: str) -> None:
-   """Loguje szczegóły żądania sieciowego oraz wyniki."""
+   """Logs the details of the network request and results."""
    with UseDatabase(app.config['dbconfig']) as cursor:
       _SQL = """insert into log
                 (phrase, letters, ip, browser_string, results)
@@ -28,7 +28,7 @@ def log_request(req: 'flask_request', res: str) -> None:
 
 @app.route('/search4', methods=['POST'])
 def do_search() -> 'html':
-   """Wydobywa przekazane dane; przeprowadza wyszukiwanie; zwraca wyniki."""
+   """It extracts the transferred data; performs a search; returns results."""
    phrase = request.form['phrase']
    letters = request.form['letters']
    title = 'Oto Twoje wyniki:'
@@ -44,14 +44,14 @@ def do_search() -> 'html':
 @app.route('/')
 @app.route('/entry')
 def entry_page() -> 'html':
-   """Wyświetla formularz HMTL tej aplikacji WWW."""
+   """Displays the HMTL form of this web application."""
    return render_template('entry.html',
                           the_title='Witamy na stronie internetowej search4letters!')
 
 
 @app.route('/viewlog')
 def view_the_log() -> 'html':
-   """Wyświetla zawartość pliku logu w tabeli HTML."""
+   """Displays the contents of the log file in the HTML table."""
    with UseDatabase(app.config['dbconfig']) as cursor:
       _SQL = """select phrase, letters, ip, browser_string, results
                 from log"""
